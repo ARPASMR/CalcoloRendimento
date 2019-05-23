@@ -21,19 +21,28 @@ import datetime as dt
 
 
 #preparazione del file di richiesta per l'estrattore
+# Query= query standard per la valutazione secondo le tipologie di Protezione Civile
+# QueryB = query per il rendimento definito come "batteria"
 #Query="Select IDsensore,DataFine,DataInizio,Aggregazione from A_Sensori join A_Stazioni on A_Sensori.IDstazione=A_Stazioni.IDstazione where IDrete =1 and NOMEtipologia in ('T','I','Q','N','RN','RG','UR','DV','VV','PP');"
 Query="Select IDsensore,A_Sensori.IDstazione,DATE_FORMAT(DataFine,'%Y-%m-%d 00:00:00') as DataFine, DATE_FORMAT(DataInizio,'%Y-%m-%d 00:00:00') as DataInizio,Aggregazione from A_Sensori join A_Stazioni on A_Sensori.IDstazione=A_Stazioni.IDstazione where IDrete in (1,4) and NOMEtipologia in ('T','I','Q','N','RN','RG','UR','DV','VV','PP');"
+QueryB="Select IDsensore,A_Sensori.IDstazione,DATE_FORMAT(DataFine,'%Y-%m-%d 00:00:00') as DataFine, DATE_FORMAT(DataInizio,'%Y-%m-%d 00:00:00') as DataInizio,Aggregazione from A_Sensori join A_Stazioni on A_Sensori.IDstazione=A_Stazioni.IDstazione where Manutenzione='ETG'  and NOMEtipologia ='PP';"
 Query2="Select IDstazione,IDsensore,NOMEtipologia,DataFine,DataInizio,Aggregazione from A_Sensori join A_Stazioni on A_Sensori.IDstazione=A_Stazioni.IDstazione where IDrete in (1,4) and NOMEtipologia in ('T','I','Q','N','RN','RG','UR','DV','VV','PP');"
 engine = create_engine('mysql+mysqlconnector://guardone:guardone@10.10.0.6/METEO')
 conn=engine.connect()
 #df_sensori=pd.read_sql(Query, conn)
-df_sensori=pd.read_sql(Query, conn, parse_dates={'DataInizio': '%Y-%m-%d %H:%M:%S','DataFine': '%Y-%m-%d %H:%M:%S'})
+df_sensori=pd.read_sql(QueryB, conn, parse_dates={'DataInizio': '%Y-%m-%d %H:%M:%S','DataFine': '%Y-%m-%d %H:%M:%S'})
 # seleziono l'anno che mi interessa
 # questo valore va cambiato tutte le volte
-anno_r_numero=2018
+anno_r_numero=2016
 anno_dopo=anno_r_numero+1
-anno_rendimento=dt.date(anno_r_numero,1,1) #mi basta l'anno?
-anno_rendimento_fine=dt.date(anno_dopo,1,1)
+anno_rendimento=dt.datetime(anno_r_numero,1,1,0,0,0) #mi basta l'anno?
+anno_rendimento_fine=dt.datetime(anno_dopo,1,1,0,0,0)
+# 
+# per agorà occorre mettere la data di fine del periodo considerato
+#
+#anno_rendimento_fine=dt.datetime(anno_r_numero,5,1,0,0,0)
+#
+#
 #anno_rendimento_fine=dt.date(anno_r_numero,12,10) #caso speciale 2017
 # print(anno_rendimento_fine.strftime('%Y-%m-%d %H:%M:%S'))
 # seleziono tutti gli elementi che hanno la DataFine nulla
@@ -49,7 +58,7 @@ df2=df[df.Aggregazione.isna()]
 #devo scrivere su file
 #0. cancello il file Richiesta.txt
 try:
-    os.remove('c:\\users\\mmussin\\desktop\\estrattore rem\\input\\Richiesta.txt')
+    os.remove('C:\\Users\\mmussin\\Desktop\\Estrattore REM\\input\\Richiesta.txt')
 except:
     print("File di richiesta non esistente")    
 #1.creo il nuovo dataframe
@@ -66,9 +75,12 @@ fine=subprocess.run(cmd)
 print("Estrazione termitata con codice",fine)
 
 
-
+# calcolo del rendimento dai file di testo in output
 dir_in='c:\\users\\mmussin\\desktop\\Estrattore rem\\output'
-#os.remove(dir_in+'Richiesta.end')
+try:
+    os.remove(dir_in+"\\"+'Richiesta.end')
+except:
+    print("File richiesta end non trovato")    
 lista_files=os.listdir(dir_in)
 Cumulatot=0
 Cumulaval=0
@@ -116,26 +128,41 @@ def calcola_rend_PC(data_inizio, data_fine,df):
     data_inizio: dev'essere del tipo 
     data_iniziale=dt.datetime(2018,1,1,0,0,1)
     data_finale=dt.datetime(2018,8,31,23,59,59)
-    df è il dataframe dei sensori (in genere df_sensori)
+    df è il dataframe dei sensori (in genere df)
     si presume che ci sia già il campo "SeMin" altrimenti va aggiunto
+    df.insert(loc=5,column='SeMin',value=None)
+    df.insert(loc=6,column='NumH',value=None)
     """
     ddelta=(data_fine-data_inizio)
-    min_funzionamento=ddelta.days*24
+    min_funzionamento=ddelta.days*24*7200/8760
     dir_in='c:\\users\\mmussin\\desktop\\Estrattore rem\\output'
     lista_files=os.listdir(dir_in)
     Cumulatot=0
     Cumulaval=0
     Cumulav10=0
-
+    try:
+        df.insert(loc=5,column='SeMin',value=None)
+        df.insert(loc=6,column='NumH',value=None)
+    except:
+        print("struttura dati ok")
     for f in lista_files:
     #print (dir_in+'\\'+f)
         dffile=pd.read_csv(dir_in+'\\'+f, sep='\t',header=None,names=['IDsensore','DataOra','Misura','Valido'])
     # errore: il 2016 è bisestile!    
+        print(dffile.IDsensore[0], dffile.shape[0])
+        df.NumH[df.IDsensore==dffile.IDsensore[0]]=dffile.shape[0]
         if(dffile.shape[0]>min_funzionamento):
             Numvals=dffile.shape[0]- 24 #verifico se ci sono 8760 valori
             df.SeMin[df.IDsensore==dffile.IDsensore[0]]=True
+            
+        else:
+            df.SeMin[df.IDsensore==dffile.IDsensore[0]]=False
+               
     df.to_csv(path_or_buf='c:\\users\\mmussin\\desktop\\dfsensori.csv')
     grouped=df[df.SeMin==True].groupby('IDstazione')
     print(grouped.sum())
     print(grouped.sum().shape[0])
+    print("Rendimento")
+    print(df.sum(axis=0,skipna=True))
+    
     
