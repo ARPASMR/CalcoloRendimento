@@ -1,11 +1,13 @@
 # CalcoloRendimento
-Calcolo del rendimento della rete
+Calcolo del rendimento della rete:
+1. calcola il numero di stazioni che hanno funzionato per almeno 7200 ore anno. Se il periodo non è un anno lo rapporta a un anno.
+2. calcola il numero di ore di funzionamento per il manitentore = Manutenzione e per il parametro B (oppure PP per ETG oppure T per Project Automation)
 
 ## Funzionamento
 Il programma principale esegue il calcolo del rendimento attraverso la richiesta dei sensori funzionanti nel periodo di interesse e l'estrazione dei dati orari tramite estrattore REM.
 Per questo motivo il funzionamento è sotto windows.
 Il rendimento è quello definito dalla procedura, ovvero [numero ore funzionamento di tutti i sensori]/ [numero di ore di funzionamento atteso per tutti i sensori]
-Il programma contiene una funzione per il calcolo del numero di stazioni con funzionamento di almeno 7500 h/anno (necessario per agorà).
+Il programma contiene una funzione per il calcolo del numero di stazioni con funzionamento di almeno 7200 h/anno (necessario per agorà).
 
 
 ## Requisiti
