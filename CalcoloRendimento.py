@@ -13,8 +13,8 @@ Calcolo del rendimento della rete:
 """
 import pandas as pd
 import os
-import numpy as np
-from pandas import Series, DataFrame, Panel
+#import numpy as np
+#from pandas import Series, DataFrame, Panel
 from sqlalchemy import *
 import datetime as dt
 
@@ -22,10 +22,10 @@ import datetime as dt
 
 #preparazione del file di richiesta per l'estrattore
 # Query= query standard per la valutazione secondo le tipologie di Protezione Civile
-# QueryB = query per il rendimento definito come "batteria"
+# QueryB = query per il rendimento definito come "batteria": nel caso di RRQA occorre mettere la T perché non c'è la B
 #Query="Select IDsensore,DataFine,DataInizio,Aggregazione from A_Sensori join A_Stazioni on A_Sensori.IDstazione=A_Stazioni.IDstazione where IDrete =1 and NOMEtipologia in ('T','I','Q','N','RN','RG','UR','DV','VV','PP');"
 Query="Select IDsensore,A_Sensori.IDstazione,DATE_FORMAT(DataFine,'%Y-%m-%d 00:00:00') as DataFine, DATE_FORMAT(DataInizio,'%Y-%m-%d 00:00:00') as DataInizio,Aggregazione from A_Sensori join A_Stazioni on A_Sensori.IDstazione=A_Stazioni.IDstazione where IDrete in (1,4) and NOMEtipologia in ('T','I','Q','N','RN','RG','UR','DV','VV','PP');"
-QueryB="Select IDsensore,A_Sensori.IDstazione,DATE_FORMAT(DataFine,'%Y-%m-%d 00:00:00') as DataFine, DATE_FORMAT(DataInizio,'%Y-%m-%d 00:00:00') as DataInizio,Aggregazione from A_Sensori join A_Stazioni on A_Sensori.IDstazione=A_Stazioni.IDstazione where IDrete in (1,4) and NOMEtipologia ='B';"
+QueryB="Select IDsensore,A_Sensori.IDstazione,DATE_FORMAT(DataFine,'%Y-%m-%d 00:00:00') as DataFine, DATE_FORMAT(DataInizio,'%Y-%m-%d 00:00:00') as DataInizio,Aggregazione from A_Sensori join A_Stazioni on A_Sensori.IDstazione=A_Stazioni.IDstazione where IDrete in (1) and NOMEtipologia ='T';"
 Query2="Select IDstazione,IDsensore,NOMEtipologia,DataFine,DataInizio,Aggregazione from A_Sensori join A_Stazioni on A_Sensori.IDstazione=A_Stazioni.IDstazione where IDrete in (1,4) and NOMEtipologia in ('T','I','Q','N','RN','RG','UR','DV','VV','PP');"
 engine = create_engine('mysql+mysqlconnector://guardone:guardone@10.10.0.6/METEO')
 conn=engine.connect()
@@ -129,6 +129,10 @@ for f in lista_files:
 print("Il rendimento complessivo è:",df_result.OreFunz.sum()/df_result.OreTot.sum())
 print("considerando anche i dati non validi", (df_result.OreFunz.sum()+df_result.OreVal10.sum())/df_result.OreTot.sum())
 #    os.remove(f)
+calcola_rend_PC(anno_rendimento,anno_rendimento_fine,df)
+#
+#   funzione di calcolo del rendimento a fini di protezione civile
+#
 def calcola_rend_PC(data_inizio, data_fine,df):
     """
     data_inizio: dev'essere del tipo 
@@ -142,7 +146,7 @@ def calcola_rend_PC(data_inizio, data_fine,df):
     ddelta=(data_fine-data_inizio)
     min_funzionamento=ddelta.days*24*7200/8760
     #dir_in='c:\\users\\mmussin\\desktop\\Estrattore rem\\output'
-    dir_in=os.path.join(os.getcwd(),'CalcoloRendimento','Output')
+    dir_in=os.path.join(os.getcwd(),'Output')
     DFSENSORI=os.getcwd()+'\\dfsensori.csv'
     lista_files=os.listdir(dir_in)
     Cumulatot=0
