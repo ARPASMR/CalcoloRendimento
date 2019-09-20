@@ -18,3 +18,11 @@ Deve essere installata in una cartella l'estrattore REM: verificare che la carte
 
 ## Note
 Il programma non è in versione __user friendly__ pertanto occorre verificarne passo passo il corretto funzionamento.
+In particolare:
+* occorre inserire manualmente le date di inizio e fine del periodo di interesse
+* occorre modificare a mano la Query per selezionare i Sensori
+* occorre ricordarsi che se manda il dato di batteria (es. RRQA) bisogna identificare un sensore "diagnostico" (es. T)
+
+# sviluppi
+Creazione di un container con estrattore a riga di comando autoconsistente per esecuzione sotto Docker for Windows
+1. installare python in windows (la vedo dura) oppure compilare lo script (forse è meglio)
