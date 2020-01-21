@@ -26,11 +26,14 @@ import datetime as dt
 #Query="Select IDsensore,DataFine,DataInizio,Aggregazione from A_Sensori join A_Stazioni on A_Sensori.IDstazione=A_Stazioni.IDstazione where IDrete =1 and NOMEtipologia in ('T','I','Q','N','RN','RG','UR','DV','VV','PP');"
 Query="Select IDsensore,A_Sensori.IDstazione,DATE_FORMAT(DataFine,'%Y-%m-%d 00:00:00') as DataFine, DATE_FORMAT(DataInizio,'%Y-%m-%d 00:00:00') as DataInizio,Aggregazione from A_Sensori join A_Stazioni on A_Sensori.IDstazione=A_Stazioni.IDstazione where IDrete in (1,4) and NOMEtipologia in ('T','I','Q','N','RN','RG','UR','DV','VV','PP');"
 QueryB="Select IDsensore,A_Sensori.IDstazione,DATE_FORMAT(DataFine,'%Y-%m-%d 00:00:00') as DataFine, DATE_FORMAT(DataInizio,'%Y-%m-%d 00:00:00') as DataInizio,Aggregazione from A_Sensori join A_Stazioni on A_Sensori.IDstazione=A_Stazioni.IDstazione where IDrete in (1) and NOMEtipologia ='T';"
+#Query_PC: chiede la batteria
+Query_PC="Select IDsensore,A_Sensori.IDstazione,DATE_FORMAT(DataFine,'%Y-%m-%d 00:00:00') as DataFine, DATE_FORMAT(DataInizio,'%Y-%m-%d 00:00:00') as DataInizio,Aggregazione from A_Sensori join A_Stazioni on A_Sensori.IDstazione=A_Stazioni.IDstazione where IDrete in (1,4) and NOMEtipologia ='B';"
 Query2="Select IDstazione,IDsensore,NOMEtipologia,DataFine,DataInizio,Aggregazione from A_Sensori join A_Stazioni on A_Sensori.IDstazione=A_Stazioni.IDstazione where IDrete in (1,4) and NOMEtipologia in ('T','I','Q','N','RN','RG','UR','DV','VV','PP');"
-engine = create_engine('mysql+mysqlconnector://guardone:guardone@10.10.0.6/METEO')
+engine = create_engine('mysql+mysqlconnector://guardone:guardone@10.10.0.19/METEO')
 conn=engine.connect()
 #df_sensori=pd.read_sql(Query, conn)
-df_sensori=pd.read_sql(QueryB, conn, parse_dates={'DataInizio': '%Y-%m-%d %H:%M:%S','DataFine': '%Y-%m-%d %H:%M:%S'})
+#la lettura dei sensori deve essere customizzata con la Query giusta
+df_sensori=pd.read_sql(Query_PC, conn, parse_dates={'DataInizio': '%Y-%m-%d %H:%M:%S','DataFine': '%Y-%m-%d %H:%M:%S'})
 # seleziono l'anno che mi interessa
 # questo valore va cambiato tutte le volte
 anno_r_numero=2019
@@ -40,7 +43,7 @@ anno_rendimento_fine=dt.datetime(anno_dopo,1,1,0,0,0)
 # 
 # per agorà occorre mettere la data di fine del periodo considerato
 #
-anno_rendimento_fine=dt.datetime(anno_r_numero,9,1,0,0,0)
+#anno_rendimento_fine=dt.datetime(anno_r_numero,9,1,0,0,0)
 #
 #
 #anno_rendimento_fine=dt.date(anno_r_numero,12,10) #caso speciale 2017
@@ -68,8 +71,8 @@ except:
     print("File di richiesta non esistente")    
 #1.creo il nuovo dataframe
 df1.insert(loc=0,column='H',value='H')
-df1.to_csv(RICHIESTA,sep='\t',columns=['H','IDsensore','DataInizio','DataFine'],header=None,index=False)
 df2.insert(loc=0,column='H',value='H')
+df1.to_csv(RICHIESTA,sep='\t',columns=['H','IDsensore','DataInizio','DataFine'],header=None,index=False)
 df2.to_csv(RICHIESTA,sep='\t',columns=['H','IDsensore','DataInizio','DataFine'],header=None,index=False,mode='a')
 
 # esecuzione estrattore
