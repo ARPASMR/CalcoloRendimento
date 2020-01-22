@@ -27,7 +27,7 @@ import datetime as dt
 Query="Select IDsensore,A_Sensori.IDstazione,DATE_FORMAT(DataFine,'%Y-%m-%d 00:00:00') as DataFine, DATE_FORMAT(DataInizio,'%Y-%m-%d 00:00:00') as DataInizio,Aggregazione from A_Sensori join A_Stazioni on A_Sensori.IDstazione=A_Stazioni.IDstazione where IDrete in (1,4) and NOMEtipologia in ('T','I','Q','N','RN','RG','UR','DV','VV','PP');"
 QueryB="Select IDsensore,A_Sensori.IDstazione,DATE_FORMAT(DataFine,'%Y-%m-%d 00:00:00') as DataFine, DATE_FORMAT(DataInizio,'%Y-%m-%d 00:00:00') as DataInizio,Aggregazione from A_Sensori join A_Stazioni on A_Sensori.IDstazione=A_Stazioni.IDstazione where IDrete in (1) and NOMEtipologia ='T';"
 #Query_PC: chiede la batteria
-Query_PC="Select IDsensore,A_Sensori.IDstazione,DATE_FORMAT(DataFine,'%Y-%m-%d 00:00:00') as DataFine, DATE_FORMAT(DataInizio,'%Y-%m-%d 00:00:00') as DataInizio,Aggregazione from A_Sensori join A_Stazioni on A_Sensori.IDstazione=A_Stazioni.IDstazione where IDrete in (1,4) and NOMEtipologia ='B';"
+Query_PC="Select IDsensore,A_Sensori.IDstazione,DATE_FORMAT(DataFine,'%Y-%m-%d 00:00:00') as DataFine, DATE_FORMAT(DataInizio,'%Y-%m-%d 00:00:00') as DataInizio,Aggregazione from A_Sensori join A_Stazioni on A_Sensori.IDstazione=A_Stazioni.IDstazione where IDrete in (4) and NOMEtipologia ='B';"
 Query2="Select IDstazione,IDsensore,NOMEtipologia,DataFine,DataInizio,Aggregazione from A_Sensori join A_Stazioni on A_Sensori.IDstazione=A_Stazioni.IDstazione where IDrete in (1,4) and NOMEtipologia in ('T','I','Q','N','RN','RG','UR','DV','VV','PP');"
 engine = create_engine('mysql+mysqlconnector://guardone:guardone@10.10.0.19/METEO')
 conn=engine.connect()
@@ -70,8 +70,11 @@ try:
 except:
     print("File di richiesta non esistente")    
 #1.creo il nuovo dataframe
-df1.insert(loc=0,column='H',value='H')
-df2.insert(loc=0,column='H',value='H')
+try:
+    df1.insert(loc=0,column='H',value='H')
+    df2.insert(loc=0,column='H',value='H')
+except:
+    print ("Inserimento colonna H non necessario")
 df1.to_csv(RICHIESTA,sep='\t',columns=['H','IDsensore','DataInizio','DataFine'],header=None,index=False)
 df2.to_csv(RICHIESTA,sep='\t',columns=['H','IDsensore','DataInizio','DataFine'],header=None,index=False,mode='a')
 
